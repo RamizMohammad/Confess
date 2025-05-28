@@ -3,7 +3,7 @@ services:
     name: flask-api
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    startCommand: gunicorn server:app
     envVars:
       - key: GOOGLE_APPLICATION_CREDENTIALS
         value: confess-f706a-firebase-adminsdk-fbsvc-64580a51d4.json
