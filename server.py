@@ -3,6 +3,7 @@ from firebase_admin import credentials
 from firebase_admin import firestore
 from flask import Flask,request,jsonify
 import json
+import os
 
 app = Flask(__name__)
 
@@ -10,7 +11,8 @@ class serverClass:
     def __init__(self):
         try:
             if not firebase_admin._apps:
-                cred = credentials.Certificate("confess-f706a-firebase-adminsdk-fbsvc-64580a51d4.json")
+                cred_json = json.loads(os.environ["FIREBASE_CREDENTIALS"])
+                cred = credentials.Certificate(cred_json)
                 firebase_admin.initialize_app(cred)
             self.db = firestore.client()
             self.status = "Firestore Connected"
@@ -24,6 +26,8 @@ class serverClass:
         except:
             self.status = "Error in data saving"
 
+server = serverClass()
+
 @app.route('/')
 def establishConnection():
     return server.status
@@ -33,10 +37,3 @@ def saveData():
     res = request.get_json()
     server.addData(res)
     return server.status
-
-if __name__ == "__main__":
-    server = serverClass()
-    app.run(
-        port=5000,
-        debug=True
-    )
