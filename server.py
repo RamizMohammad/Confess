@@ -29,7 +29,7 @@ server = serverClass()
 
 @app.route('/jagte-raho')
 def jagteRaho():
-    return
+    return "Abhi hum jinda hai"
 
 @app.route('/')
 def establishConnection():
