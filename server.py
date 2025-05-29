@@ -43,7 +43,7 @@ def saveData():
 
 def keepAlive():
     while True:
-        time.sleep(60)
+        time.sleep(300)
         requests.get("https://confess-ysj8.onrender.com/jagte-raho")
 
 threading.Thread(target=keepAlive, daemon=True).start()
