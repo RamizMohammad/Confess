@@ -28,6 +28,10 @@ class serverClass:
 
 server = serverClass()
 
+@app.route('/jagte-raho')
+def jagteRaho():
+    return "JaagRaha hun"
+
 @app.route('/')
 def establishConnection():
     return server.status
