@@ -2,7 +2,7 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 from flask import Flask,request,jsonify
-import json, os, threading, time
+import json, os, threading, time, requests
 
 app = Flask(__name__)
 
@@ -44,6 +44,6 @@ def saveData():
 def keepAlive():
     while True:
         time.sleep(60)
-        request.get("https://confess-ysj8.onrender.com/jagte-raho")
+        requests.get("https://confess-ysj8.onrender.com/jagte-raho")
 
 threading.Thread(target=keepAlive, daemon=True).start()
