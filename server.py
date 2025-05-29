@@ -2,8 +2,7 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 from flask import Flask,request,jsonify
-import json
-import os
+import json, os, threading, time
 
 app = Flask(__name__)
 
@@ -30,7 +29,7 @@ server = serverClass()
 
 @app.route('/jagte-raho')
 def jagteRaho():
-    return "JaagRaha hun"
+    return
 
 @app.route('/')
 def establishConnection():
@@ -41,3 +40,10 @@ def saveData():
     res = request.get_json()
     server.addData(res)
     return server.status
+
+def keepAlive():
+    while True:
+        time.sleep(60)
+        request.get("https://confess-ysj8.onrender.com/jagte-raho")
+
+threading.Thread(target=keepAlive, daemon=True).start()
