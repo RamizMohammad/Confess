@@ -14,16 +14,25 @@ class serverClass:
                 cred = credentials.Certificate(cred_json)
                 firebase_admin.initialize_app(cred)
             self.db = firestore.client()
-            self.status = "Firestore Connected"
+            self.status = True
         except:
-            self.status = "Firebase Not Connected"
+            self.status = False
 
-    def addData(self,data):
+    def createUser(self,data):
         try:
             self.db.collection("Confession-UserData").add(data)
-            self.status = "Data Saved Successfully"
+            self.status = True
         except:
-            self.status = "Error in data saving"
+            self.status = True
+
+    def checkUser(self,email):
+        findTheMail = self.db.collection("Confession-UserData")
+        query = findTheMail.where("email", "==", email).limit(1).stream()
+
+        for mail in query:
+            return True
+        
+        return False
 
 server = serverClass()
 
@@ -33,13 +42,32 @@ def jagteRaho():
 
 @app.route('/')
 def establishConnection():
-    return server.status
+    return jsonify({
+        "message": server.status
+    }),200
 
-@app.route('/add-data', methods=['POST'])
+@app.route('/add-user', methods=['POST'])
 def saveData():
     res = request.get_json()
-    server.addData(res)
-    return server.status
+    server.createUser(res)
+    return jsonify({
+        "message": server.status
+    })
+
+@app.route('/check-user',methods=['POST'])
+def checkUser():
+    res = request.get_json()
+    email = res.get('email')
+
+    if server.checkUser(email):
+        return jsonify({
+            "message" : True,
+        })
+    else:
+        return jsonify({
+            "message" : False,
+        })
+
 
 def keepAlive():
     while True:
