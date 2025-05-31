@@ -71,7 +71,7 @@ def checkUser():
 
 def keepAlive():
     while True:
-        time.sleep(300)
+        time.sleep(100)
         requests.get("https://confess-ysj8.onrender.com/jagte-raho")
 
 threading.Thread(target=keepAlive, daemon=True).start()
