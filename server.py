@@ -15,7 +15,7 @@ class ConfessServer():
     def __init__(self):
         try:
             if not firebase_admin._apps:
-                cred_json = json.load(os.environ["FIREBASE_CREDENTIALS"])
+                cred_json = json.loads(os.environ["FIREBASE_CREDENTIALS"])
                 cred = credentials.Certificate(cred_json)
                 firebase_admin.initialize_app(cred)
             self.db = firestore.client()
