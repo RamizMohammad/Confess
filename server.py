@@ -1,16 +1,21 @@
+from fastapi import FastAPI, Request, BackgroundTasks
+from pydantic import BaseModel
+from fastapi.responses import JSONResponse
 import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import firestore
-from flask import Flask,request,jsonify
-import json, os, threading, time, requests
+from firebase_admin import credentials,firestore
+import json, os, time, requests
 
-app = Flask(__name__)
+app = FastAPI()
 
-class serverClass:
+#!----------------------------------
+#! Server Class
+#!----------------------------------
+
+class ConfessServer():
     def __init__(self):
         try:
             if not firebase_admin._apps:
-                cred_json = json.loads(os.environ["FIREBASE_CREDENTIALS"])
+                cred_json = json.load(os.environ["FIREBASE_CREDENTIALS"])
                 cred = credentials.Certificate(cred_json)
                 firebase_admin.initialize_app(cred)
             self.db = firestore.client()
@@ -18,60 +23,81 @@ class serverClass:
         except:
             self.status = False
 
-    def createUser(self,data):
+    def createUser(self, data: dict):
         try:
             self.db.collection("Confession-UserData").add(data)
-            self.status = True
-        except:
-            self.status = True
-
-    def checkUser(self,email):
-        findTheMail = self.db.collection("Confession-UserData")
-        query = findTheMail.where("email", "==", email).limit(1).stream()
-
-        for mail in query:
             return True
+        except Exception as e:
+            return False
         
-        return False
+    def checkUser(self, email: str) -> bool:
+        try:
+            user = self.db.collection("Confession-UserData").where("email", "==", email).limit(1).stream()
+            for _ in user:
+                return True
+        except Exception as e:
+            return False
+        
+#*----------------------
+#* Server Class Start
+#* ---------------------
+        
+server = ConfessServer()
 
-server = serverClass()
+#!----------------------------------
+#! Pydantic Class
+#!----------------------------------
 
-@app.route('/jagte-raho')
-def jagteRaho():
-    return "Abhi hum jinda hai"
+class addUserData(BaseModel):
+    token: str
+    email: str
+    alaisName: str
+    date: str
 
-@app.route('/')
-def establishConnection():
-    return jsonify({
+class checkUserEmail(BaseModel):
+    email: str
+
+#!----------------------------------
+#! Routes
+#!----------------------------------
+
+@app.get('/jagte-raho')
+async def serverInvoker():
+    return "Abhi Hum Jinda Hai"
+
+@app.get('/')
+async def homeRoute():
+    return {
         "message": server.status
-    }),200
+    }
 
-@app.route('/add-user', methods=['POST'])
-def saveData():
-    res = request.get_json()
-    server.createUser(res)
-    return jsonify({
-        "message": server.status
-    })
+@app.post('/add-user')
+async def addUser(data: addUserData):
+    result = server.createUser(data.dict())
+    return{
+        "message": result
+    }
 
-@app.route('/check-user',methods=['POST'])
-def checkUser():
-    res = request.get_json()
-    email = res.get('email')
+@app.post('/check-user')
+async def checkExistingUser(data: checkUserEmail):
+    result = server.checkUser(data.email)
+    return{
+        "message": result
+    }
 
-    if server.checkUser(email):
-        return jsonify({
-            "message" : True,
-        })
-    else:
-        return jsonify({
-            "message" : False,
-        })
+#! -------------------------------
+#! Background Keep-Alive Task
+#! -------------------------------
 
-
-def keepAlive():
+def keep_alive():
     while True:
+        try:
+            requests.get("https://confess-ysj8.onrender.com/jagte-raho")
+        except Exception as e:
+            print("KeepAlive Error:", e)
         time.sleep(100)
-        requests.get("https://confess-ysj8.onrender.com/jagte-raho")
 
-threading.Thread(target=keepAlive, daemon=True).start()
+@app.on_event("startup")
+def start_keep_alive():
+    import threading
+    threading.Thread(target=keep_alive, daemon=True).start()
