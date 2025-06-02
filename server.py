@@ -14,8 +14,8 @@ app = FastAPI()
 class ConfessServer():
     def __init__(self):
 
-        self.botToken = json.loads(os.environ["BOT_TOKEN"])
-        self.chatId = json.loads(os.environ["CHAT_ID"])
+        self.botToken = os.environ["BOT_TOKEN"]
+        self.chatId = os.environ["CHAT_ID"]
 
         try:
             if not firebase_admin._apps:
