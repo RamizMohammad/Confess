@@ -1,9 +1,10 @@
 from fastapi import FastAPI, Request, BackgroundTasks
-from pydantic import BaseModel
+from pydantic import BaseModel, root_validator
 from fastapi.responses import JSONResponse
 import firebase_admin
 from firebase_admin import credentials,firestore
 import json, os, time, requests
+from typing import Optional
 
 app = FastAPI()
 
@@ -86,6 +87,18 @@ class addUserData(BaseModel):
     email: str
     alaisName: str
     date: str
+    isPassword: bool
+    password: Optional[str] = None
+
+    @root_validator
+    def passwordValidator(cls, values):
+        isPassword = values.get('isPassword')
+        password = values.get('password')
+
+        if isPassword and not password:
+            server.send_telegram_log("There is error in setting the password")
+            raise ValueError("Password must be provided if isPassword is True")
+        return values
 
 class checkUserEmail(BaseModel):
     email: str
@@ -112,7 +125,7 @@ async def homeRoute():
 
 @app.post('/add-user')
 async def addUser(data: addUserData):
-    result = server.createUser(data.dict())
+    result = server.createUser(data.dict(exclude=True))
     return{
         "message": result
     }
