@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: FastApi  # consider renaming to reflect FastAPI
+    name: FastAPI  # consider renaming to reflect FastAPI
     runtime: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn -w 4 -k uvicorn.workers.UvicornWorker server:app
