@@ -91,14 +91,11 @@ class addUserData(BaseModel):
     password: Optional[str] = None
 
     @model_validator(mode='after')
-    def passwordValidator(cls, values):
-        isPassword = values.get('isPassword')
-        password = values.get('password')
-
-        if isPassword and not password:
+    def passwordValidator(self) -> 'addUserData':
+        if self.isPassword and not self.password:
             server.send_telegram_log("There is error in setting the password")
             raise ValueError("Password must be provided if isPassword is True")
-        return values
+        return self
 
 class checkUserEmail(BaseModel):
     email: str
@@ -125,7 +122,7 @@ async def homeRoute():
 
 @app.post('/add-user')
 async def addUser(data: addUserData):
-    result = server.createUser(data.dict(exclude=True))
+    result = server.createUser(data.model_dump(exclude_none=True))
     return{
         "message": result
     }
