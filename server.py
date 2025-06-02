@@ -22,8 +22,6 @@ class ConfessServer():
                 cred_json = json.loads(os.environ["FIREBASE_CREDENTIALS"])
                 cred = credentials.Certificate(cred_json)
                 firebase_admin.initialize_app(cred)
-            self.botToken = "7656575225:AAG9qBPWvkZDb5tAIkIbbcvxcwA7EyfdrCA"
-            self.chatId = "1196311825"
             self.db = firestore.client()
             self.status = True
         except Exception as e:
