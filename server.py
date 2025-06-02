@@ -13,14 +13,21 @@ app = FastAPI()
 
 class ConfessServer():
     def __init__(self):
+
+        self.botToken = json.load(os.environ["BOT_TOKEN"])
+        self.chatId = json.load(os.environ["CHAT_ID"])
+
         try:
             if not firebase_admin._apps:
-                cred_json = json.loads(os.environ["FIREBASE_CREDENTIALS"])
+                cred_json = json.load(os.environ["FIREBASE_CREDENTIALS"])
                 cred = credentials.Certificate(cred_json)
                 firebase_admin.initialize_app(cred)
+            self.botToken = "7656575225:AAG9qBPWvkZDb5tAIkIbbcvxcwA7EyfdrCA"
+            self.chatId = "1196311825"
             self.db = firestore.client()
             self.status = True
-        except:
+        except Exception as e:
+            self.send_telegram_log(f"FireStroe Connection failed:\n{e}")
             self.status = False
 
     def createUser(self, data: dict):
@@ -28,6 +35,7 @@ class ConfessServer():
             self.db.collection("Confession-UserData").add(data)
             return True
         except Exception as e:
+            self.send_telegram_log(f"CreateUser Error:\n{e}")
             return False
         
     def checkUser(self, email: str) -> bool:
@@ -36,7 +44,21 @@ class ConfessServer():
             for _ in user:
                 return True
         except Exception as e:
+            self.send_telegram_log(f"CheckUser Error:\n{e}")
             return False
+        
+    def send_telegram_log(self, message: str):
+        try:
+            if self.botToken and self.chatId:
+                url = f"https://api.telegram.org/bot{self.botToken}/sendMessage"
+                payload = {
+                    "chat_id": self.chatId,
+                    "text": f"[ConfessBot Error]\n{message}"
+                }
+                requests.post(url, data=payload)
+        except Exception as e:
+            print("Telegram Logging Failed:", e)
+
         
 #*----------------------
 #* Server Class Start
@@ -56,6 +78,9 @@ class addUserData(BaseModel):
 
 class checkUserEmail(BaseModel):
     email: str
+
+class telegramMessages(BaseModel):
+    message: str
 
 #!----------------------------------
 #! Routes
