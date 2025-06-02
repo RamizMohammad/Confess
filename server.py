@@ -31,6 +31,7 @@ class ConfessServer():
     def createUser(self, data: dict):
         try:
             self.db.collection("Confession-UserData").add(data)
+            self.send_telegram_log(f"We found a new user:\n{data}")
             return True
         except Exception as e:
             self.send_telegram_log(f"CreateUser Error:\n{e}")
@@ -44,6 +45,18 @@ class ConfessServer():
         except Exception as e:
             self.send_telegram_log(f"CheckUser Error:\n{e}")
             return False
+        
+    def deleteExistingUser(self, email: str) -> bool:
+        try:
+            users = self.db.collection("Confession-UserData").where("email", "==", email).limit(1).stream()
+            userErased = False
+            for user in users:
+                self.db.collection("Confession-UserData").document(user.id).delete()
+                userErased = True
+            return userErased
+        except Exception as e:
+            self.send_telegram_log(f"Caught an error while deleting user:\n{e}")
+            return userErased
         
     def send_telegram_log(self, message: str):
         try:
@@ -80,6 +93,9 @@ class checkUserEmail(BaseModel):
 class telegramMessages(BaseModel):
     message: str
 
+class deleteExistingUser(BaseModel):
+    email: str
+
 #!----------------------------------
 #! Routes
 #!----------------------------------
@@ -104,6 +120,13 @@ async def addUser(data: addUserData):
 @app.post('/check-user')
 async def checkExistingUser(data: checkUserEmail):
     result = server.checkUser(data.email)
+    return{
+        "message": result
+    }
+
+@app.post('/delete-user')
+async def deleteTheUser(data: deleteExistingUser):
+    result = server.deleteExistingUser(data)
     return{
         "message": result
     }
