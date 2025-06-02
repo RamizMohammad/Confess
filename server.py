@@ -126,7 +126,7 @@ async def checkExistingUser(data: checkUserEmail):
 
 @app.post('/delete-user')
 async def deleteTheUser(data: deleteExistingUser):
-    result = server.deleteExistingUser(data)
+    result = server.deleteExistingUser(data.email)
     return{
         "message": result
     }
