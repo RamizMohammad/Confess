@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, BackgroundTasks
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, model_validator
 from fastapi.responses import JSONResponse
 import firebase_admin
 from firebase_admin import credentials,firestore
@@ -90,7 +90,7 @@ class addUserData(BaseModel):
     isPassword: bool
     password: Optional[str] = None
 
-    @root_validator
+    @model_validator(mode='after')
     def passwordValidator(cls, values):
         isPassword = values.get('isPassword')
         password = values.get('password')
