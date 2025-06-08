@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request, BackgroundTasks
 from pydantic import BaseModel, model_validator
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 import firebase_admin
-from firebase_admin import credentials,firestore
+from firebase_admin import credentials, firestore
 import json, os, time, requests
 from typing import Optional
 import datetime
@@ -10,13 +10,8 @@ import uuid
 
 app = FastAPI()
 
-#!----------------------------------
-#! Server Class
-#!----------------------------------
-
 class ConfessServer():
     def __init__(self):
-
         self.botToken = os.environ["BOT_TOKEN"]
         self.chatId = os.environ["CHAT_ID"]
 
@@ -39,7 +34,7 @@ class ConfessServer():
         except Exception as e:
             self.send_telegram_log(f"CreateUser Error:\n{e}")
             return False
-        
+
     def checkUser(self, email: str) -> bool:
         try:
             user = self.db.collection("Confession-UserData").where("email", "==", email).limit(1).stream()
@@ -48,7 +43,7 @@ class ConfessServer():
         except Exception as e:
             self.send_telegram_log(f"CheckUser Error:\n{e}")
             return False
-        
+
     def deleteExistingUser(self, email: str) -> bool:
         try:
             users = self.db.collection("Confession-UserData").where("email", "==", email).limit(1).stream()
@@ -60,7 +55,7 @@ class ConfessServer():
         except Exception as e:
             self.send_telegram_log(f"Caught an error while deleting user:\n{e}")
             return userErased
-        
+
     def send_telegram_log(self, message: str):
         try:
             if self.botToken and self.chatId:
@@ -75,7 +70,7 @@ class ConfessServer():
 
     def passwordReset(self, email: str):
         token = str(uuid.uuid4())
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.utcnow().isoformat()
         data = {
             "email": email,
             "token": token,
@@ -90,32 +85,31 @@ class ConfessServer():
         except Exception as e:
             self.send_telegram_log(f"Error creating a link:\n{e}")
             return None
-        
+
     def validateResetLink(self, token: str):
         try:
             doc = self.db.collection("PasswordResetToken").document(token).get()
             if not doc.exists:
                 return False, "Invalid Token"
-            
+
             data = doc.to_dict()
             now = datetime.datetime.utcnow()
             created = datetime.datetime.fromisoformat(data["createdAt"])
 
             if not data["used"]:
-                if(now - created).total_seconds() > 600:
+                if (now - created).total_seconds() > 600:
                     return False, "Token expired (10 mins)"
-                return True, "Valid Token"
-            
+                return True, data["email"]
             else:
                 usedAt = datetime.datetime.fromisoformat(data["usedAt"])
-                if(now - usedAt).total_seconds() > 60:
-                    return False, "Token expired after used"
-                return True, "Valid within 1 minute after use"
-        
+                if (now - usedAt).total_seconds() > 60:
+                    return False, "Token expired after use"
+                return True, data["email"]
+
         except Exception as e:
             self.send_telegram_log(f"Error in validating token:\n{e}")
             return False, "Validation Error"
-        
+
     def markTokenUsed(self, token: str):
         try:
             self.db.collection("PasswordResetToken").document(token).update({
@@ -124,16 +118,21 @@ class ConfessServer():
             })
         except Exception as e:
             self.send_telegram_log(f"Error marking token:\n{e}")
-        
-#*----------------------
-#* Server Class Start
-#* ---------------------
-        
-server = ConfessServer()
 
-#!----------------------------------
-#! Pydantic Class
-#!----------------------------------
+    def updateUserPassword(self, email: str, new_password: str):
+        try:
+            users = self.db.collection("Confession-UserData").where("email", "==", email).limit(1).stream()
+            for user in users:
+                self.db.collection("Confession-UserData").document(user.id).update({
+                    "password": new_password
+                })
+                return True
+            return False
+        except Exception as e:
+            self.send_telegram_log(f"Error updating password:\n{e}")
+            return False
+
+server = ConfessServer()
 
 class addUserData(BaseModel):
     token: str
@@ -153,9 +152,6 @@ class addUserData(BaseModel):
 class checkUserEmail(BaseModel):
     email: str
 
-class telegramMessages(BaseModel):
-    message: str
-
 class deleteExistingUser(BaseModel):
     email: str
 
@@ -166,23 +162,32 @@ class passwordResetModel(BaseModel):
     token: str
     newPassword: str
 
-class userAddEmail(BaseModel):
-    name: str
-    email: str
-    date: str
-
-class forgotPasswordEmail(BaseModel):
-    name: str
-    date: str
-    link: str
-
-class deleteuserEmail(BaseModel):
-    name: str
-    Date: str
-
-#!----------------------------------
-#! Routes
-#!----------------------------------
+@app.get("/reset-password/{token}", response_class=HTMLResponse)
+async def reset_password_form(token: str):
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head><title>Reset Password</title></head>
+    <body>
+        <h2>Reset Password</h2>
+        <input type='password' id='password' placeholder='Enter new password'/>
+        <button onclick="submitReset()">Submit</button>
+        <p id='message'></p>
+        <script>
+            async function submitReset() {{
+                let password = document.getElementById('password').value;
+                let response = await fetch('/reset-password', {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify({{ token: '{token}', newPassword: password }})
+                }});
+                let result = await response.json();
+                document.getElementById('message').innerText = result.message;
+            }}
+        </script>
+    </body>
+    </html>
+    """
 
 @app.get('/jagte-raho')
 async def serverInvoker():
@@ -190,82 +195,47 @@ async def serverInvoker():
 
 @app.get('/')
 async def homeRoute():
-    return {
-        "message": server.status
-    }
+    return {"message": server.status}
 
 @app.post('/add-user')
 async def addUser(data: addUserData):
     result = server.createUser(data.model_dump(exclude_none=True))
-    return{
-        "message": result
-    }
+    return {"message": result}
 
 @app.post('/check-user')
 async def checkExistingUser(data: checkUserEmail):
     result = server.checkUser(data.email)
-    return{
-        "message": result
-    }
+    return {"message": result}
 
 @app.post('/delete-user')
 async def deleteTheUser(data: deleteExistingUser):
     result = server.deleteExistingUser(data.email)
-    return{
-        "message": result
-    }
+    return {"message": result}
 
 @app.post('/request-reset')
 async def requestUserPasswordReset(data: requestResetModel):
     if not server.checkUser(data.email):
-        return JSONResponse(
-            status_code=404,
-            content={
-                "messages": "User not found"
-            }
-        )
+        return JSONResponse(status_code=404, content={"messages": "User not found"})
+
     token = server.passwordReset(data.email)
     if token:
         link = f"https://confess-ysj8.onrender.com/reset-password/{token}"
         server.send_telegram_log(f"Password reset link:\n{link}")
-        return{
-            "reset_link": link
-        }
-    
-    return JSONResponse(
-        status_code=500,
-        content={
-            "message": "Failed to create reset token"
-        }
-    )
+        return {"reset_link": link}
 
-@app.get('/validate-reset/{token}')
-async def validateReset(token: str):
-    valid, msg = server.validateResetLink(token)
-    return{
-        "valid": valid,
-        "message": msg
-    }
+    return JSONResponse(status_code=500, content={"message": "Failed to create reset token"})
 
 @app.post('/reset-password')
 async def resetPassword(data: passwordResetModel):
-    valid, msg = server.validateResetLink(data.token)
+    valid, result = server.validateResetLink(data.token)
     if not valid:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "message": msg
-            }
-        )
-    
-    server.markTokenUsed(data.token)
-    return{
-        "message": "Password reset successful"
-    }
+        return JSONResponse(status_code=400, content={"message": result})
 
-#! -------------------------------
-#! Background Keep-Alive Task
-#! -------------------------------
+    server.markTokenUsed(data.token)
+    if server.updateUserPassword(result, data.newPassword):
+        return {"message": "Password reset successful"}
+    else:
+        return JSONResponse(status_code=500, content={"message": "Failed to update password"})
 
 def keep_alive():
     while True:
