@@ -5,6 +5,8 @@ import firebase_admin
 from firebase_admin import credentials,firestore
 import json, os, time, requests
 from typing import Optional
+import datetime
+import uuid
 
 app = FastAPI()
 
@@ -71,6 +73,57 @@ class ConfessServer():
         except Exception as e:
             print("Telegram Logging Failed:", e)
 
+    def passwordReset(self, email: str):
+        token = str(uuid.uuid4())
+        now = datetime.datetime.utcnow()
+        data = {
+            "email": email,
+            "token": token,
+            "createdAt": now,
+            "used": False,
+            "usedAt": None
+        }
+
+        try:
+            self.db.collection("PasswordResetToken").document(token).set(data)
+            return token
+        except Exception as e:
+            self.send_telegram_log(f"Error creating a link:\n{e}")
+            return None
+        
+    def validateResetLink(self, token: str):
+        try:
+            doc = self.db.collection("PasswordResetToken").document(token).get()
+            if not doc.exists:
+                return False, "Invalid Token"
+            
+            data = doc.to_dict()
+            now = datetime.datetime.utcnow()
+            created = datetime.datetime.fromisoformat(data["createdAt"])
+
+            if not data["used"]:
+                if(now - created).total_seconds() > 600:
+                    return False, "Token expired (10 mins)"
+                return True, "Valid Token"
+            
+            else:
+                usedAt = datetime.datetime.fromisoformat(data["usedAt"])
+                if(now - usedAt).total_seconds() > 60:
+                    return False, "Token expired after used"
+                return True, "Valid within 1 minute after use"
+        
+        except Exception as e:
+            self.send_telegram_log(f"Error in validating token:\n{e}")
+            return False, "Validation Error"
+        
+    def markTokenUsed(self, token: str):
+        try:
+            self.db.collection("PasswordResetToken").document(token).update({
+                "used": True,
+                "usedAt": datetime.datetime.utcnow().isoformat()
+            })
+        except Exception as e:
+            self.send_telegram_log(f"Error marking token:\n{e}")
         
 #*----------------------
 #* Server Class Start
@@ -106,6 +159,27 @@ class telegramMessages(BaseModel):
 class deleteExistingUser(BaseModel):
     email: str
 
+class requestResetModel(BaseModel):
+    email: str
+
+class passwordResetModel(BaseModel):
+    token: str
+    newPassword: str
+
+class userAddEmail(BaseModel):
+    name: str
+    email: str
+    date: str
+
+class forgotPasswordEmail(BaseModel):
+    name: str
+    date: str
+    link: str
+
+class deleteuserEmail(BaseModel):
+    name: str
+    Date: str
+
 #!----------------------------------
 #! Routes
 #!----------------------------------
@@ -139,6 +213,54 @@ async def deleteTheUser(data: deleteExistingUser):
     result = server.deleteExistingUser(data.email)
     return{
         "message": result
+    }
+
+@app.post('/request-reset')
+async def requestUserPasswordReset(data: requestResetModel):
+    if not server.checkUser(data.email):
+        return JSONResponse(
+            status_code=404,
+            content={
+                "messages": "User not found"
+            }
+        )
+    token = server.passwordReset(data.email)
+    if token:
+        link = f"https://confess-ysj8.onrender.com/reset-password/{token}"
+        server.send_telegram_log(f"Password reset link:\n{link}")
+        return{
+            "reset_link": link
+        }
+    
+    return JSONResponse(
+        status_code=500,
+        content={
+            "message": "Failed to create reset token"
+        }
+    )
+
+@app.get('/validate-reset/{token}')
+async def validateReset(token: str):
+    valid, msg = server.validateResetLink(token)
+    return{
+        "valid": valid,
+        "message": msg
+    }
+
+@app.post('/reset-password')
+async def resetPassword(data: passwordResetModel):
+    valid, msg = server.validateResetLink(data.token)
+    if not valid:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "message": msg
+            }
+        )
+    
+    server.markTokenUsed(data.token)
+    return{
+        "message": "Password reset successful"
     }
 
 #! -------------------------------
