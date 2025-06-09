@@ -169,7 +169,7 @@ class passwordResetModel(BaseModel):
 
 @app.get('/reset-password/{token}', response_class=HTMLResponse)
 async def show_reset_form(request: Request, token: str):
-    return templates.TemplateResponse("reset_password.html", {"request": request})
+    return templates.TemplateResponse("reset.html", {"request": request})
 
 @app.get('/jagte-raho')
 async def serverInvoker():
