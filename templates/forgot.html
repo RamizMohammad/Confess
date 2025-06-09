@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block subject %}Reset Your Password{% endblock %}
+{% block content %}
+<p>Hi <strong>{{ name }}</strong>,</p>
+<p>You requested a password reset. Click below to proceed:</p>
+<p><a href="{{ reset_link }}" class="btn">Reset Password</a></p>
+<p>If you didn't request this, you can ignore this message.</p>
+{% endblock %}

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Password Reset</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div class="container">
+        <div class="reset-card">
+          <div class="header">
+            <h1>Reset Your Password</h1>
+            <p class="subtitle">Enter your new password below</p>
+          </div>
+
+          <form id="resetForm" class="reset-form">
+            <div class="input-group">
+              <label for="newPassword">New Password</label>
+              <input 
+                type="password" 
+                id="newPassword" 
+                name="newPassword" 
+                required 
+                minlength="6"
+                placeholder="Enter your new password"
+              />
+            </div>
+
+            <button type="submit" id="submitBtn" class="submit-btn">
+              <span class="btn-text">Reset Password</span>
+              <span class="btn-loader" style="display: none;">Resetting...</span>
+            </button>
+          </form>
+
+          <div id="message" class="message" style="display: none;"></div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/static/js/script.js"></script>
+  </body>
+</html>

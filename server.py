@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Request, BackgroundTasks
 from pydantic import BaseModel, model_validator
 from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 import firebase_admin
 from firebase_admin import credentials, firestore
 import json, os, time, requests
@@ -9,6 +11,9 @@ import datetime
 import uuid
 
 app = FastAPI()
+
+templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class ConfessServer():
     def __init__(self):
@@ -162,32 +167,9 @@ class passwordResetModel(BaseModel):
     token: str
     newPassword: str
 
-@app.get("/reset-password/{token}", response_class=HTMLResponse)
-async def reset_password_form(token: str):
-    return f"""
-    <!DOCTYPE html>
-    <html>
-    <head><title>Reset Password</title></head>
-    <body>
-        <h2>Reset Password</h2>
-        <input type='password' id='password' placeholder='Enter new password'/>
-        <button onclick="submitReset()">Submit</button>
-        <p id='message'></p>
-        <script>
-            async function submitReset() {{
-                let password = document.getElementById('password').value;
-                let response = await fetch('/reset-password', {{
-                    method: 'POST',
-                    headers: {{ 'Content-Type': 'application/json' }},
-                    body: JSON.stringify({{ token: '{token}', newPassword: password }})
-                }});
-                let result = await response.json();
-                document.getElementById('message').innerText = result.message;
-            }}
-        </script>
-    </body>
-    </html>
-    """
+@app.get('/reset-password/{token}', response_class=HTMLResponse)
+async def show_reset_form(request: Request, token: str):
+    return templates.TemplateResponse("reset_password.html", {"request": request})
 
 @app.get('/jagte-raho')
 async def serverInvoker():
@@ -215,15 +197,15 @@ async def deleteTheUser(data: deleteExistingUser):
 @app.post('/request-reset')
 async def requestUserPasswordReset(data: requestResetModel):
     if not server.checkUser(data.email):
-        return JSONResponse(status_code=404, content={"messages": "User not found"})
-
+        return JSONResponse(status_code=404, content={"success": False})
+    
     token = server.passwordReset(data.email)
     if token:
         link = f"https://confess-ysj8.onrender.com/reset-password/{token}"
-        server.send_telegram_log(f"Password reset link:\n{link}")
-        return {"reset_link": link}
+        server.send_telegram_log(f"[Password Reset Link Generated]\nEmail: {data.email}\nLink: {link}")
+        return {"success": True}
 
-    return JSONResponse(status_code=500, content={"message": "Failed to create reset token"})
+    return JSONResponse(status_code=500, content={"success": False})
 
 @app.post('/reset-password')
 async def resetPassword(data: passwordResetModel):
@@ -236,6 +218,19 @@ async def resetPassword(data: passwordResetModel):
         return {"message": "Password reset successful"}
     else:
         return JSONResponse(status_code=500, content={"message": "Failed to update password"})
+    
+@app.get('/validate-token/{token}')
+async def validate_token(token: str):
+    valid, msg = server.validateResetLink(token)
+    return {"valid": valid, "message": msg if not valid else "Token is valid"}
+    
+@app.get('/reset-password/{token}', response_class=HTMLResponse)
+async def show_reset_form(request: Request, token: str):
+    valid, msg = server.validateResetLink(token)
+    if not valid:
+        return templates.TemplateResponse("invalid_token.html", {"request": request, "message": msg})
+    return templates.TemplateResponse("reset_password.html", {"request": request, "token": token})
+
 
 def keep_alive():
     while True:

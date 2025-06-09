@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block subject %}Welcome to Our Platform{% endblock %}
+{% block content %}
+<p>Hello <strong>{{ name }}</strong>,</p>
+<p>We're excited to have you on board!</p>
+<ul>
+  <li><strong>Email:</strong> {{ email }}</li>
+  <li><strong>Joined:</strong> {{ date }}</li>
+</ul>
+<p>Enjoy the experience with us!</p>
+{% endblock %}
