@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, BackgroundTasks
+from fastapi import FastAPI, Request, BackgroundTasks,Query
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -17,13 +17,9 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-@app.get('/reset-password/{token}', response_class=HTMLResponse)
-async def show_reset_form(request: Request, token: str):
-    valid, msg = server.validateResetLink(token)
-    if not valid:
-        return templates.TemplateResponse("invalid_token.html", {"request": request, "message": msg})
-    return templates.TemplateResponse("reset.html", {"request": request, "token": token})
-
+@app.get('/reset-password', response_class=HTMLResponse)
+async def show_reset_form(request: Request, token: str = Query(default=None)):
+    return templates.TemplateResponse("reset.html", {"request": request})
 
 @app.get('/jagte-raho')
 async def serverInvoker():
