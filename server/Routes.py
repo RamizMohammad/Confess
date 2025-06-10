@@ -81,7 +81,7 @@ async def show_reset_form(request: Request, token: str):
         return templates.TemplateResponse("invalid_token.html", {"request": request, "message": msg})
     return templates.TemplateResponse("reset_password.html", {"request": request, "token": token})
 
-# @app.on_event("startup")
-# def start_keep_alive():
-#     import threading
-#     threading.Thread(target=keep_alive, daemon=True).start()
+@app.on_event("startup")
+def start_keep_alive():
+    import threading
+    threading.Thread(target=keep_alive, daemon=True).start()
