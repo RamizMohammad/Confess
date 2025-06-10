@@ -31,3 +31,15 @@ class requestResetModel(BaseModel):
 class passwordResetModel(BaseModel):
     token: str
     newPassword: str
+
+class postsDataModel(BaseModel):
+    postId: str
+    alaisName: str
+    dateOfPost: str
+    post: str
+
+class postStatusModel(BaseModel):
+    postId: str
+    likeCount: int
+    supportCount: int
+    usBhaiCount: int

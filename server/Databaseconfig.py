@@ -6,10 +6,12 @@ import uuid
 
 class ConfessServer():
     def __init__(self):
+        #! Initialize Firebase and Telegram credentials
         self.botToken = os.environ["BOT_TOKEN"]
         self.chatId = os.environ["CHAT_ID"]
 
         try:
+            #! Initialize Firebase App only once
             if not firebase_admin._apps:
                 cred_json = json.loads(os.environ["FIREBASE_CREDENTIALS"])
                 cred = credentials.Certificate(cred_json)
@@ -17,10 +19,15 @@ class ConfessServer():
             self.db = firestore.client()
             self.status = True
         except Exception as e:
-            self.send_telegram_log(f"FireStroe Connection failed:\n{e}")
+            self.send_telegram_log(f"Firestore Connection failed:\n{e}")
             self.status = False
 
+    #! ──────────────────────────────────────────────
+    #! 🧑‍💼 User Account Management
+    #! ──────────────────────────────────────────────
+
     def createUser(self, data: dict):
+        #! Add a new user to Firestore.
         try:
             self.db.collection("Confession-UserData").add(data)
             self.send_telegram_log(f"We found a new user:\n{data}")
@@ -30,15 +37,18 @@ class ConfessServer():
             return False
 
     def checkUser(self, email: str) -> bool:
+        #! Check if a user exists in Firestore by email.
         try:
             user = self.db.collection("Confession-UserData").where("email", "==", email).limit(1).stream()
             for _ in user:
                 return True
+            return False
         except Exception as e:
             self.send_telegram_log(f"CheckUser Error:\n{e}")
             return False
 
     def deleteExistingUser(self, email: str) -> bool:
+        #! Delete a user from Firestore by email.
         try:
             users = self.db.collection("Confession-UserData").where("email", "==", email).limit(1).stream()
             userErased = False
@@ -48,21 +58,32 @@ class ConfessServer():
             return userErased
         except Exception as e:
             self.send_telegram_log(f"Caught an error while deleting user:\n{e}")
-            return userErased
+            return False
 
-    def send_telegram_log(self, message: str):
+    def updateUserPassword(self, email: str, new_password: str):
+        #! Update a user's password.
         try:
-            if self.botToken and self.chatId:
-                url = f"https://api.telegram.org/bot{self.botToken}/sendMessage"
-                payload = {
-                    "chat_id": self.chatId,
-                    "text": f"[ConfessBot Error]\n{message}"
-                }
-                requests.post(url, data=payload)
+            users = self.db.collection("Confession-UserData").where("email", "==", email).limit(1).stream()
+            for user in users:
+                self.db.collection("Confession-UserData").document(user.id).update({
+                    "password": new_password
+                })
+                return True
+            return False
         except Exception as e:
-            print("Telegram Logging Failed:", e)
+            self.send_telegram_log(f"Error updating password:\n{e}")
+            return False
+        
+    def checkExistingAlaisName(self, alais: str) -> bool:
+        alaisCheck = self.db.collection("Confession-UserData").where("alaisName", "==", alais).limit(1).stream()
+        return any(alaisCheck)
+
+    #! ──────────────────────────────────────────────
+    #!🔐 Password Reset Workflow
+    #! ──────────────────────────────────────────────
 
     def passwordReset(self, email: str):
+        #! Generate and store a password reset token.
         token = str(uuid.uuid4())
         now = datetime.datetime.utcnow().isoformat()
         data = {
@@ -81,6 +102,7 @@ class ConfessServer():
             return None
 
     def validateResetLink(self, token: str):
+        #! Validate reset token and check expiry (10 mins) and usage.
         try:
             doc = self.db.collection("PasswordResetToken").document(token).get()
             if not doc.exists:
@@ -101,25 +123,29 @@ class ConfessServer():
             self.send_telegram_log(f"Error in validating token:\n{e}")
             return False, "Validation Error"
 
-
     def markTokenUsed(self, token: str):
+        #! Mark a password reset token as used.
         try:
             self.db.collection("PasswordResetToken").document(token).update({
                 "used": True,
-            "   usedAt": datetime.datetime.utcnow().isoformat()
+                "usedAt": datetime.datetime.utcnow().isoformat()
             })
         except Exception as e:
             self.send_telegram_log(f"Error marking token:\n{e}")
 
-    def updateUserPassword(self, email: str, new_password: str):
+    #! ──────────────────────────────────────────────
+    #! 📢 Telegram Bot Logging
+    #! ──────────────────────────────────────────────
+
+    def send_telegram_log(self, message: str):
+        #! Send logs or errors to the configured Telegram bot.
         try:
-            users = self.db.collection("Confession-UserData").where("email", "==", email).limit(1).stream()
-            for user in users:
-                self.db.collection("Confession-UserData").document(user.id).update({
-                    "password": new_password
-                })
-                return True
-            return False
+            if self.botToken and self.chatId:
+                url = f"https://api.telegram.org/bot{self.botToken}/sendMessage"
+                payload = {
+                    "chat_id": self.chatId,
+                    "text": f"[ConfessBot Error]\n{message}"
+                }
+                requests.post(url, data=payload)
         except Exception as e:
-            self.send_telegram_log(f"Error updating password:\n{e}")
-            return False
+            print("Telegram Logging Failed:", e)

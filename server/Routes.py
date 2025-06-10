@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from .Databaseconfig import ConfessServer
-from .Model import addUserData, checkUserEmail, deleteExistingUser, requestResetModel, passwordResetModel
+from .Model import *
 from .Awake import keep_alive
 from pathlib import Path
 
@@ -53,6 +53,11 @@ async def resetPassword(data: passwordResetModel):
 
 @app.post('/add-user')
 async def addUser(data: addUserData):
+    if server.checkExistingAlaisName(data.alaisName):
+        return{
+            "message": False
+        }
+
     result = server.createUser(data.model_dump(exclude_none=True))
     return {"message": result}
 
@@ -77,9 +82,9 @@ async def requestUserPasswordReset(data: requestResetModel):
     if token:
         link = f"https://confess-ysj8.onrender.com/reset-password/{token}"
         server.send_telegram_log(f"[Password Reset Link Generated]\nEmail: {data.email}\nLink: {link}")
-        return {"success": True}
+        return {"message": True}
 
-    return JSONResponse(status_code=500, content={"success": False})
+    return {"message": False}
 
 #! ----------- SYSTEM STATUS + KEEP ALIVE -----------
 
@@ -89,7 +94,9 @@ async def homeRoute():
 
 @app.get('/jagte-raho')
 async def serverInvoker():
-    return "Abhi Hum Jinda Hai"
+    return JSONResponse(status_code=200, content={
+        "message": "Abhi Hum Jinda Hai"
+    })
 
 #! ----------- BACKGROUND TASK (keep_alive thread) -----------
 
