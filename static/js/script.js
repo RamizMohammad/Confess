@@ -1,10 +1,11 @@
-// Get token from URL
+// Extract token from URL path
 function getTokenFromURL() {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get('token');
+  const pathSegments = window.location.pathname.split('/');
+  // Expected URL: /reset-password/{token}
+  return pathSegments[pathSegments.length - 1];
 }
 
-// Show messages
+// Display messages
 function showMessage(text, type = 'info') {
   const messageEl = document.getElementById('message');
   messageEl.textContent = text;
@@ -29,7 +30,7 @@ function setLoading(isLoading) {
   btnLoader.style.display = isLoading ? 'inline' : 'none';
 }
 
-// Validate token
+// Validate token via backend
 async function validateToken(token) {
   try {
     const response = await fetch(`https://confess-ysj8.onrender.com/validate-token/${token}`);
@@ -46,7 +47,7 @@ async function validateToken(token) {
   }
 }
 
-// Submit password
+// Submit new password
 async function resetPassword(token, newPassword) {
   try {
     setLoading(true);
@@ -72,11 +73,12 @@ async function resetPassword(token, newPassword) {
   }
 }
 
-// Init
+// Initialize the form logic
 document.addEventListener('DOMContentLoaded', () => {
   const token = getTokenFromURL();
-  if (!token) {
-    showMessage('Missing reset token.', 'error');
+
+  if (!token || token === 'reset-password') {
+    showMessage('Missing or invalid reset token.', 'error');
     document.getElementById('resetForm').style.display = 'none';
     return;
   }
@@ -87,10 +89,12 @@ document.addEventListener('DOMContentLoaded', () => {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const newPassword = document.getElementById('newPassword').value;
+
     if (newPassword.length < 6) {
       showMessage('Password must be at least 6 characters.', 'error');
       return;
     }
+
     await resetPassword(token, newPassword);
   });
 
