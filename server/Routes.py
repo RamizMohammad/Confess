@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Request, BackgroundTasks,Query
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi import FastAPI, Request, BackgroundTasks, Query
+from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from .Databaseconfig import ConfessServer
@@ -10,6 +10,7 @@ from pathlib import Path
 app = FastAPI()
 server = ConfessServer()
 
+#* Directory setup
 BASE_DIR = Path(__file__).resolve().parent.parent
 STATIC_DIR = BASE_DIR / "static"
 TEMPLATES_DIR = BASE_DIR / "templates"
@@ -17,17 +18,38 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
+#! ----------- RESET PASSWORD ROUTES -----------
+
+#* Primary HTML page (JS handles the token)
 @app.get('/reset-password', response_class=HTMLResponse)
 async def show_reset_form(request: Request, token: str = Query(default=None)):
     return templates.TemplateResponse("reset.html", {"request": request})
 
-@app.get('/jagte-raho')
-async def serverInvoker():
-    return "Abhi Hum Jinda Hai"
+#* Redirect route: /reset-password/{token} → /reset-password?token=...
+@app.get('/reset-password/{token}', response_class=HTMLResponse)
+async def redirect_to_query_param(request: Request, token: str):
+    return RedirectResponse(url=f"/reset-password?token={token}")
 
-@app.get('/')
-async def homeRoute():
-    return {"message": server.status}
+#* Token validation endpoint used by JS
+@app.get('/validate-token/{token}')
+async def validate_token(token: str):
+    valid, msg = server.validateResetLink(token)
+    return {"valid": valid, "message": msg if not valid else "Token is valid"}
+
+#* Reset password endpoint called by JS
+@app.post('/reset-password')
+async def resetPassword(data: passwordResetModel):
+    valid, result = server.validateResetLink(data.token)
+    if not valid:
+        return JSONResponse(status_code=400, content={"message": result})
+
+    server.markTokenUsed(data.token)
+    if server.updateUserPassword(result, data.newPassword):
+        return {"message": "Password reset successful"}
+    else:
+        return JSONResponse(status_code=500, content={"message": "Failed to update password"})
+
+#! ----------- USER MANAGEMENT ROUTES -----------
 
 @app.post('/add-user')
 async def addUser(data: addUserData):
@@ -44,11 +66,13 @@ async def deleteTheUser(data: deleteExistingUser):
     result = server.deleteExistingUser(data.email)
     return {"message": result}
 
+#! ----------- PASSWORD RESET REQUEST FLOW -----------
+
 @app.post('/request-reset')
 async def requestUserPasswordReset(data: requestResetModel):
     if not server.checkUser(data.email):
         return JSONResponse(status_code=404, content={"success": False})
-    
+
     token = server.passwordReset(data.email)
     if token:
         link = f"https://confess-ysj8.onrender.com/reset-password/{token}"
@@ -57,29 +81,17 @@ async def requestUserPasswordReset(data: requestResetModel):
 
     return JSONResponse(status_code=500, content={"success": False})
 
-@app.post('/reset-password')
-async def resetPassword(data: passwordResetModel):
-    valid, result = server.validateResetLink(data.token)
-    if not valid:
-        return JSONResponse(status_code=400, content={"message": result})
+#! ----------- SYSTEM STATUS + KEEP ALIVE -----------
 
-    server.markTokenUsed(data.token)
-    if server.updateUserPassword(result, data.newPassword):
-        return {"message": "Password reset successful"}
-    else:
-        return JSONResponse(status_code=500, content={"message": "Failed to update password"})
-    
-@app.get('/validate-token/{token}')
-async def validate_token(token: str):
-    valid, msg = server.validateResetLink(token)
-    return {"valid": valid, "message": msg if not valid else "Token is valid"}
-    
-# @app.get('/reset-password/{token}', response_class=HTMLResponse)
-# async def show_reset_form(request: Request, token: str):
-#     valid, msg = server.validateResetLink(token)
-#     if not valid:
-#         return templates.TemplateResponse("invalid_token.html", {"request": request, "message": msg})
-#     return templates.TemplateResponse("reset_password.html", {"request": request, "token": token})
+@app.get('/')
+async def homeRoute():
+    return {"message": server.status}
+
+@app.get('/jagte-raho')
+async def serverInvoker():
+    return "Abhi Hum Jinda Hai"
+
+#! ----------- BACKGROUND TASK (keep_alive thread) -----------
 
 @app.on_event("startup")
 def start_keep_alive():
