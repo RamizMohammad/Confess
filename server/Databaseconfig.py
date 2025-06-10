@@ -95,20 +95,18 @@ class ConfessServer():
                     return False, "Token expired (10 mins)"
                 return True, data["email"]
             else:
-                usedAt = datetime.datetime.fromisoformat(data["usedAt"])
-                if (now - usedAt).total_seconds() > 60:
-                    return False, "Token expired after use"
-                return True, data["email"]
+                return False, "Token already used"
 
         except Exception as e:
             self.send_telegram_log(f"Error in validating token:\n{e}")
             return False, "Validation Error"
 
+
     def markTokenUsed(self, token: str):
         try:
             self.db.collection("PasswordResetToken").document(token).update({
                 "used": True,
-                "usedAt": datetime.datetime.utcnow().isoformat()
+            "   usedAt": datetime.datetime.utcnow().isoformat()
             })
         except Exception as e:
             self.send_telegram_log(f"Error marking token:\n{e}")
