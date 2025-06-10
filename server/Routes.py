@@ -19,7 +19,11 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 @app.get('/reset-password/{token}', response_class=HTMLResponse)
 async def show_reset_form(request: Request, token: str):
-    return templates.TemplateResponse("reset.html", {"request": request})
+    valid, msg = server.validateResetLink(token)
+    if not valid:
+        return templates.TemplateResponse("invalid_token.html", {"request": request, "message": msg})
+    return templates.TemplateResponse("reset.html", {"request": request, "token": token})
+
 
 @app.get('/jagte-raho')
 async def serverInvoker():
