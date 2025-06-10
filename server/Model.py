@@ -1,6 +1,6 @@
 from pydantic import BaseModel, model_validator
 from typing import Optional
-from Databaseconfig import ConfessServer
+from .Databaseconfig import ConfessServer
 
 server = ConfessServer()
 

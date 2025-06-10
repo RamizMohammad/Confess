@@ -2,9 +2,9 @@ from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from Databaseconfig import ConfessServer
-from Model import addUserData, checkUserEmail, deleteExistingUser, requestResetModel, passwordResetModel
-from Awake import keep_alive
+from .Databaseconfig import ConfessServer
+from .Model import addUserData, checkUserEmail, deleteExistingUser, requestResetModel, passwordResetModel
+from .Awake import keep_alive
 from pathlib import Path
 
 app = FastAPI()
