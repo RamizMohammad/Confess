@@ -74,12 +74,12 @@ async def validate_token(token: str):
     valid, msg = server.validateResetLink(token)
     return {"valid": valid, "message": msg if not valid else "Token is valid"}
     
-@app.get('/reset-password/{token}', response_class=HTMLResponse)
-async def show_reset_form(request: Request, token: str):
-    valid, msg = server.validateResetLink(token)
-    if not valid:
-        return templates.TemplateResponse("invalid_token.html", {"request": request, "message": msg})
-    return templates.TemplateResponse("reset_password.html", {"request": request, "token": token})
+# @app.get('/reset-password/{token}', response_class=HTMLResponse)
+# async def show_reset_form(request: Request, token: str):
+#     valid, msg = server.validateResetLink(token)
+#     if not valid:
+#         return templates.TemplateResponse("invalid_token.html", {"request": request, "message": msg})
+#     return templates.TemplateResponse("reset_password.html", {"request": request, "token": token})
 
 @app.on_event("startup")
 def start_keep_alive():
