@@ -71,7 +71,7 @@ async def deleteTheUser(data: deleteExistingUser):
     result = server.deleteExistingUser(data.email)
     return {"message": result}
 
-@app.post('check-user-pass')
+@app.post('/check-userpass')
 def checkUserAndPassword(data: checkUserAndPasswordModel):
     isUser, isPassword = server.checkUserAndPassword(data.email)
     return{
