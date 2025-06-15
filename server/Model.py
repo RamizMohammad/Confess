@@ -32,6 +32,9 @@ class passwordResetModel(BaseModel):
     token: str
     newPassword: str
 
+class checkUserAndPasswordModel(BaseModel):
+    email: str
+
 class postsDataModel(BaseModel):
     postId: str
     alaisName: str

@@ -22,6 +22,12 @@ class ConfessServer():
             self.send_telegram_log(f"Firestore Connection failed:\n{e}")
             self.status = False
 
+    #! ---------------------------------------------
+    #! POST ALGORITHMS
+    #! ---------------------------------------------
+
+
+
     #! ──────────────────────────────────────────────
     #! 🧑‍💼 User Account Management
     #! ──────────────────────────────────────────────
@@ -133,6 +139,37 @@ class ConfessServer():
         except Exception as e:
             self.send_telegram_log(f"Error marking token:\n{e}")
 
+    #! ---------------------------------------------
+    #! Chech for password protection
+    #! ---------------------------------------------
+
+    def checkUserAndPassword(self, email: str) -> Dict(str, bool):
+        try:
+            docs = self.db.collection("Confession-UserData").where("email", "==",data.email).limit(1).stream()
+            for doc in docs:
+                userData = doc.to_dict()
+                return True, data.get('isPassword', False)
+            return False, False
+        except Exception as e:
+            self.send_telegram_log(f"Error in checking password:\n{e}")
+            return False, False
+        
+    def checkForCorrectPassword(self, email:str, password: str) -> bool:
+        
+        if not self.checkUser(email):
+            return False
+        
+        try:
+            users = self.db.collection("Confession-UserData").where("email", "==", email).limit(1).stream()
+
+            for user in users:
+                data = user.to_dict()
+                return (data.get("password") == password)
+            
+        except Exception as e:
+            self.send_telegram_log(f"Error in checking password:\n{e}")
+            return False
+        
     #! ──────────────────────────────────────────────
     #! 📢 Telegram Bot Logging
     #! ──────────────────────────────────────────────
