@@ -146,7 +146,7 @@ class ConfessServer():
 
     def checkUserAndPassword(self, email: str) -> Tuple[str, bool]:
         try:
-            docs = self.db.collection("Confession-UserData").where("email", "==",data.email).limit(1).stream()
+            docs = self.db.collection("Confession-UserData").where("email", "==", email).limit(1).stream()
             for doc in docs:
                 userData = doc.to_dict()
                 return True, data.get('isPassword', False)
