@@ -144,7 +144,7 @@ class ConfessServer():
     #! Chech for password protection
     #! ---------------------------------------------
 
-    def checkUserAndPassword(self, email: str) -> Tuple(str, bool):
+    def checkUserAndPassword(self, email: str) -> Tuple[str, bool]:
         try:
             docs = self.db.collection("Confession-UserData").where("email", "==",data.email).limit(1).stream()
             for doc in docs:
