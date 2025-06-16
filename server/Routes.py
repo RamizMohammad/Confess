@@ -51,7 +51,7 @@ async def resetPassword(data: passwordResetModel):
 
 #! ----------- USER MANAGEMENT ROUTES -----------
 
-@app.post("/add-user")
+@app.post('/add-user')
 async def addUser(data: addUserData):
     loop = asyncio.get_event_loop()
     result = await loop.run_in_executor(None, server.createUser, data.model_dump(exclude_none=True))
