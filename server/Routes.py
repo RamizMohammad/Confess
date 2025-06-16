@@ -6,6 +6,7 @@ from .Databaseconfig import ConfessServer
 from .Model import *
 from .Awake import keep_alive
 from pathlib import Path
+import asyncio
 
 app = FastAPI()
 server = ConfessServer()
