@@ -7,7 +7,7 @@ server = ConfessServer()
 class addUserData(BaseModel):
     token: str
     email: str
-    alaisName: str
+    aliasName: str
     date: str
     isPassword: bool
     password: Optional[str] = None
@@ -41,7 +41,7 @@ class checkPassword(BaseModel):
 
 class postsDataModel(BaseModel):
     postId: str
-    alaisName: str
+    aliasName: str
     dateOfPost: str
     post: str
 
