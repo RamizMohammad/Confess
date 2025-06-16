@@ -53,17 +53,20 @@ async def resetPassword(data: passwordResetModel):
 
 @app.post('/add-user')
 async def addUser(data: addUserData):
-    alias = server.checkExistingAlaisName(data.aliasName)
-    return{
-        "isAliasName": alias,
-        "isUserCreated": False
-    }
+    alias_exists = server.checkExistingAlaisName(data.aliasName)
+    
+    if alias_exists:
+        return {
+            "isAliasName": True,
+            "isUserCreated": False
+        }
 
     result = server.createUser(data.model_dump(exclude_none=True))
     return {
         "isAliasName": False,
         "isUserCreated": result
     }
+
 
 @app.post('/check-user')
 async def checkExistingUser(data: checkUserEmail):
