@@ -55,11 +55,15 @@ async def resetPassword(data: passwordResetModel):
 async def addUser(data: addUserData):
     if server.checkExistingAlaisName(data.alaisName):
         return{
-            "alaisStatus": "exists"
+            "aliasExists": True,
+            "userCreated": False
         }
 
     result = server.createUser(data.model_dump(exclude_none=True))
-    return {"message": result}
+    return {
+        "aliasExists": False,
+        "userCreated": result
+    }
 
 @app.post('/check-user')
 async def checkExistingUser(data: checkUserEmail):
@@ -79,6 +83,15 @@ def checkUserAndPassword(data: checkUserAndPasswordModel):
         "isPassword": isPassword
     }
 
+@app.post('/check-passwrod')
+def checkPassword(data: checkPassword):
+    status = server.checkForCorrectPassword(
+        data.email,
+        data.password
+    )
+    return{
+        "message": status
+    }
 #! ----------- PASSWORD RESET REQUEST FLOW -----------
 
 @app.post('/request-reset')

@@ -162,11 +162,11 @@ class ConfessServer():
         
         try:
             users = self.db.collection("Confession-UserData").where("email", "==", email).limit(1).stream()
-
             for user in users:
                 data = user.to_dict()
-                return (data.get("password") == password)
-            
+                if(data.get("password") == password):
+                    return True
+            return False
         except Exception as e:
             self.send_telegram_log(f"Error in checking password:\n{e}")
             return False
