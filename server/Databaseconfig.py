@@ -182,7 +182,7 @@ class ConfessServer():
                 url = f"https://api.telegram.org/bot{self.botToken}/sendMessage"
                 payload = {
                     "chat_id": self.chatId,
-                    "text": f"[ConfessBot Error]\n{message}"
+                    "text": f"[ConfessBot Error Server]\n{message}"
                 }
                 requests.post(url, data=payload)
         except Exception as e:
