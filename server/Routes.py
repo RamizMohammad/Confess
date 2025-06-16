@@ -55,7 +55,7 @@ async def resetPassword(data: passwordResetModel):
 async def addUser(data: addUserData):
     if server.checkExistingAlaisName(data.alaisName):
         return{
-            "message": "alias already exists"
+            "alaisStatus": "exists"
         }
 
     result = server.createUser(data.model_dump(exclude_none=True))
