@@ -33,15 +33,27 @@ class ConfessServer():
     #! 🧑‍💼 User Account Management
     #! ──────────────────────────────────────────────
 
-    def createUser(self, data: dict):
-        #! Add a new user to Firestore.
+    def createUser(self, data: dict) -> bool:
         try:
-            self.db.collection("Confession-UserData").add(data)
-            self.send_telegram_log(f"We found a new user:\n{data}")
+            alias = data.get("aliasName")
+            if not alias:
+                self.send_telegram_log("❌ Missing aliasName in user data.")
+                return False
+
+            # 🔐 Use alias as document ID and create (will fail if already exists)
+            self.db.collection("Confession-UserData").document(alias).create(data)
+
+            self.send_telegram_log(f"✅ New user created with alias '{alias}':\n{data}")
             return True
+
         except Exception as e:
-            self.send_telegram_log(f"CreateUser Error:\n{e}")
+            # Handle duplicate alias error
+            if "ALREADY_EXISTS" in str(e):
+                self.send_telegram_log(f"⚠️ Duplicate alias prevented: {alias}")
+            else:
+                self.send_telegram_log(f"🔥 CreateUser Error:\n{e}")
             return False
+
 
     def checkUser(self, email: str) -> bool:
         #! Check if a user exists in Firestore by email.

@@ -51,20 +51,14 @@ async def resetPassword(data: passwordResetModel):
 
 #! ----------- USER MANAGEMENT ROUTES -----------
 
-@app.post('/add-user')
+@app.post("/add-user")
 async def addUser(data: addUserData):
-    alias_exists = server.checkExistingAlaisName(data.aliasName)
-    
-    if alias_exists:
-        return {
-            "isAliasName": True,
-            "isUserCreated": False
-        }
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(None, server.createUser, data.model_dump(exclude_none=True))
 
-    result = server.createUser(data.model_dump(exclude_none=True))
     return {
-        "isAliasName": False,
-        "isUserCreated": result
+        "isAliasName": not result,       # True if alias existed
+        "isUserCreated": result          # True if user created
     }
 
 
