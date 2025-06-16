@@ -6,7 +6,6 @@ from .Databaseconfig import ConfessServer
 from .Model import *
 from .Awake import keep_alive
 from pathlib import Path
-import asyncio
 
 app = FastAPI()
 server = ConfessServer()
@@ -54,14 +53,17 @@ async def resetPassword(data: passwordResetModel):
 
 @app.post('/add-user')
 async def addUser(data: addUserData):
-    loop = asyncio.get_event_loop()
-    result = await loop.run_in_executor(None, server.createUser, data.model_dump(exclude_none=True))
-
-    return {
-        "isAliasName": not result,       # True if alias existed
-        "isUserCreated": result          # True if user created
+    alias = server.checkExistingAlaisName(data.aliasName)
+    return{
+        "isAliasName": alias,
+        "isUserCreated": False
     }
 
+    result = server.createUser(data.model_dump(exclude_none=True))
+    return {
+        "isAliasName": False,
+        "isUserCreated": result
+    }
 
 @app.post('/check-user')
 async def checkExistingUser(data: checkUserEmail):
