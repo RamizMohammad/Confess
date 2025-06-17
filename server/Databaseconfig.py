@@ -83,7 +83,7 @@ class ConfessServer():
         
     def checkExistingAlaisName(self, alais: str) -> bool:
         try:
-            alaisCheck = self.db.collection("Confession-UserData").where("alaisName", "==", alais).limit(1).stream()
+            alaisCheck = self.db.collection("Confession-UserData").where("aliasName", "==", alais).limit(1).stream()
             for  _ in alaisCheck:
                 return True
             return False
