@@ -85,7 +85,7 @@ def checkUserAndPassword(data: checkUserAndPasswordModel):
         "isPassword": isPassword
     }
 
-@app.post('/check-passwrod')
+@app.post('/check-password')
 def checkPassword(data: checkPassword):
     status = server.checkForCorrectPassword(
         data.email,
