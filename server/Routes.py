@@ -96,7 +96,7 @@ def checkPassword(data: checkPassword):
     }
 #! ----------- PASSWORD RESET REQUEST FLOW -----------
 
-@app.post('/request-reset')
+@app.post('/forgot-password')
 async def requestUserPasswordReset(data: requestResetModel):
     if not server.checkUser(data.email):
         return JSONResponse(status_code=404, content={"success": False})
