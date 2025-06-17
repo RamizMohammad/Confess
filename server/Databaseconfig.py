@@ -82,9 +82,13 @@ class ConfessServer():
             return False
         
     def checkExistingAlaisName(self, alais: str) -> bool:
-        alaisCheck = self.db.collection("Confession-UserData").where("alaisName", "==", alais).limit(1).stream()
-        return any(alaisCheck)
-
+        try:
+            alaisCheck = self.db.collection("Confession-UserData").where("alaisName", "==", alais).limit(1).stream()
+            for  _ in alaisCheck:
+                return True
+            return False
+        except Exception as e:
+            self.send_telegram_log(f"We got an error:\n{e}")
     #! ──────────────────────────────────────────────
     #!🔐 Password Reset Workflow
     #! ──────────────────────────────────────────────
