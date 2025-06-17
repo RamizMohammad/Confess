@@ -54,6 +54,7 @@ async def resetPassword(data: passwordResetModel):
 @app.post('/add-user')
 async def addUser(data: addUserData):
     alias = server.checkExistingAlaisName(data.aliasName)
+    server.send_telegram_log(alias)
     if(alias):
         return{
             "isAliasName": alias,
