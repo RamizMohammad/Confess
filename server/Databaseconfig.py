@@ -188,6 +188,7 @@ class ConfessServer():
 
     def send_telegram_log(self, message: str):
         #! Send logs or errors to the configured Telegram bot.
+        self.saveTheServerLogs(f"Confess Server Errors\n{message}")
         try:
             if self.botToken and self.chatId:
                 url = f"https://api.telegram.org/bot{self.botToken}/sendMessage"
@@ -195,7 +196,6 @@ class ConfessServer():
                     "chat_id": self.chatId,
                     "text": f"[ConfessBot Error Server]\n{message}"
                 }
-                self.saveTheServerLogs(f"Confess Server Errors\n{message}")
                 requests.post(url, data=payload)
         except Exception as e:
             print("Telegram Logging Failed:", e)
