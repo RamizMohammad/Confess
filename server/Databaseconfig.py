@@ -174,6 +174,13 @@ class ConfessServer():
         except Exception as e:
             self.send_telegram_log(f"Error in checking password:\n{e}")
             return False
+
+    #!-----------------------------------------------
+    #! Logs Saver
+    #!-----------------------------------------------
+
+    def saveTheServerLogs(self, logs:str):
+        self.db.collection("Logs-Data").add(logs)
         
     #! ──────────────────────────────────────────────
     #! 📢 Telegram Bot Logging
@@ -188,6 +195,7 @@ class ConfessServer():
                     "chat_id": self.chatId,
                     "text": f"[ConfessBot Error Server]\n{message}"
                 }
+                self.saveTheServerLogs(f"Confess Server Errors\n{message}")
                 requests.post(url, data=payload)
         except Exception as e:
             print("Telegram Logging Failed:", e)
