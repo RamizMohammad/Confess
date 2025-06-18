@@ -182,7 +182,7 @@ class ConfessServer():
     def saveTheServerLogs(self, logs:str):
         self.db.collection("Logs-Data").add({
             "log": logs,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.datetime.utcnow().isoformat()
         })
         
     #! ──────────────────────────────────────────────
