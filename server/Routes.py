@@ -140,7 +140,7 @@ async def requestUserPasswordReset(data: requestResetModel, request: Request):
 async def homeRoute():
     return {"message": server.status}
 
-@app.post('/jagte-raho')
+@app.get('/jagte-raho')
 async def serverInvoker():
     return JSONResponse(status_code=200, content={
         "message": "Abhi Hum Jinda Hai"
