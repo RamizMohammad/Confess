@@ -141,10 +141,7 @@ async def homeRoute():
     return {"message": server.status}
 
 @app.post('/jagte-raho')
-async def serverInvoker(request: Request):
-    if not validate.validate(request.headers.get("x-api-key")):
-        return False
-
+async def serverInvoker():
     return JSONResponse(status_code=200, content={
         "message": "Abhi Hum Jinda Hai"
     })
