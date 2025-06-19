@@ -10,11 +10,11 @@ class ApiValidator:
 
     def validate(self, client_key: str):
         if not client_key:
-            self.valiServer.send_telegram_log("Api key not found in request")
+            self.valiServer.send_telegram_log(message="Api key not found in request")
             return False
         
         match_key = hashlib.sha256(client_key.encode()).hexdigest()
         if match_key != self.apiKey:
-            self.valiServer.send_telegram_log(f"API_KEY not matched")
+            self.valiServer.send_telegram_log(message="API_KEY not matched")
             return False
         return True
