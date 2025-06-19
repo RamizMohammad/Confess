@@ -8,6 +8,7 @@ class addUserData(BaseModel):
     token: str
     email: str
     aliasName: str
+    about: str
     date: str
     isPassword: bool
     password: Optional[str] = None
