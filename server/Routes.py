@@ -73,17 +73,29 @@ async def addUser(data: addUserData, request: Request):
         }
 
 @app.post('/check-user')
-async def checkExistingUser(data: checkUserEmail):
+async def checkExistingUser(data: checkUserEmail, request: Request):
+    if not validate.validate(request.headers.get("x-api-key")):
+        return {
+            "message": False
+        }
     result = server.checkUser(data.email)
     return {"message": result}
 
 @app.post('/delete-user')
-async def deleteTheUser(data: deleteExistingUser):
+async def deleteTheUser(data: deleteExistingUser, request: Request):
+    if not validate.validate(request.headers.get("x-api-key")):
+        return {
+            "message": False
+        }
     result = server.deleteExistingUser(data.email)
     return {"message": result}
 
 @app.post('/check-userpass')
-def checkUserAndPassword(data: checkUserAndPasswordModel):
+def checkUserAndPassword(data: checkUserAndPasswordModel, request: Request):
+    if not validate.validate(request.headers.get("x-api-key")):
+        return {
+            "message": False
+        }
     isUser, isPassword = server.checkUserAndPassword(data.email)
     return{
         "isUser": isUser,
@@ -91,7 +103,11 @@ def checkUserAndPassword(data: checkUserAndPasswordModel):
     }
 
 @app.post('/check-password')
-def checkPassword(data: checkPassword):
+def checkPassword(data: checkPassword, request: Request):
+    if not validate.validate(request.headers.get("x-api-key")):
+        return {
+            "message": False
+        }
     status = server.checkForCorrectPassword(
         data.email,
         data.password
@@ -102,7 +118,11 @@ def checkPassword(data: checkPassword):
 #! ----------- PASSWORD RESET REQUEST FLOW -----------
 
 @app.post('/forgot-password')
-async def requestUserPasswordReset(data: requestResetModel):
+async def requestUserPasswordReset(data: requestResetModel, request: Request):
+    if not validate.validate(request.headers.get("x-api-key")):
+        return {
+            "message": False
+        }
     if not server.checkUser(data.email):
         return JSONResponse(status_code=404, content={"success": False})
 
