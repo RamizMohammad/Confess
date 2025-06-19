@@ -1,6 +1,7 @@
 import hashlib
 import secrets
 from .Databaseconfig import ConfessServer
+import os
 
 class ApiValidator:
     def __init__(self):
