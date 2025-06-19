@@ -5,10 +5,12 @@ from fastapi.staticfiles import StaticFiles
 from .Databaseconfig import ConfessServer
 from .Model import *
 from .Awake import keep_alive
+from .Validator import ApiValidator
 from pathlib import Path
 
 app = FastAPI()
 server = ConfessServer()
+validate = ApiValidator()
 
 #* Directory setup
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -54,7 +56,6 @@ async def resetPassword(data: passwordResetModel):
 @app.post('/add-user')
 async def addUser(data: addUserData):
     alias = server.checkExistingAlaisName(data.aliasName)
-    server.send_telegram_log(alias)
     if(alias):
         return{
             "isAliasName": alias,
@@ -115,8 +116,11 @@ async def requestUserPasswordReset(data: requestResetModel):
 async def homeRoute():
     return {"message": server.status}
 
-@app.get('/jagte-raho')
-async def serverInvoker():
+@app.post('/jagte-raho')
+async def serverInvoker(request: Request):
+    if not validate.validate(request.headers.get("x-api-key")):
+        return False
+
     return JSONResponse(status_code=200, content={
         "message": "Abhi Hum Jinda Hai"
     })
