@@ -6,9 +6,9 @@ import os
 class ApiValidator:
     def __init__(self):
         self.apiKey = os.environ["API_KEY"]
-        self.valiServer = ConfessServer
+        self.valiServer = ConfessServer()
 
-    def validate(self, client_key: str):
+    def validate(self, client_key: str) -> bool:
         if not client_key:
             self.valiServer.send_telegram_log(message="Api key not found in request")
             return False
