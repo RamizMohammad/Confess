@@ -54,7 +54,11 @@ async def resetPassword(data: passwordResetModel):
 #! ----------- USER MANAGEMENT ROUTES -----------
 
 @app.post('/add-user')
-async def addUser(data: addUserData):
+async def addUser(data: addUserData, request: Request):
+    if not validate.validate(request.headers.get("x-api-key")):
+        return {
+            "message": False
+        }
     alias = server.checkExistingAlaisName(data.aliasName)
     if(alias):
         return{
