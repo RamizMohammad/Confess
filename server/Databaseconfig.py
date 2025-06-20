@@ -1,23 +1,29 @@
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore, storage
 import json, os, time, requests
 import datetime
 import uuid
 from typing import Tuple
+from fastapi import UploadFile
 
 class ConfessServer():
     def __init__(self):
         #! Initialize Firebase and Telegram credentials
         self.botToken = os.environ["BOT_TOKEN"]
         self.chatId = os.environ["CHAT_ID"]
+        self.BUCKET_NAME = os.environ["BUCKET_NAME"]
 
         try:
             #! Initialize Firebase App only once
             if not firebase_admin._apps:
                 cred_json = json.loads(os.environ["FIREBASE_CREDENTIALS"])
                 cred = credentials.Certificate(cred_json)
-                firebase_admin.initialize_app(cred)
+                firebase_admin.initialize_app(
+                    cred,
+                    {'storageBucket': self.BUCKET_NAME}
+                )
             self.db = firestore.client()
+            self.bucket = storage.bucket()
             self.status = True
         except Exception as e:
             self.send_telegram_log(f"Firestore Connection failed:\n{e}")
