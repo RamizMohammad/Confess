@@ -5,7 +5,6 @@ from .Databaseconfig import ConfessServer
 server = ConfessServer()
 
 class addUserData(BaseModel):
-    token: str
     email: str
     aliasName: str
     about: str
@@ -42,7 +41,7 @@ class checkPassword(BaseModel):
 
 class postsDataModel(BaseModel):
     postId: str
-    aliasName: str
+    email: str
     dateOfPost: str
     post: str
 

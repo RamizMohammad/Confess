@@ -5,7 +5,6 @@ import datetime
 import uuid
 from typing import Tuple
 from fastapi import UploadFile
-
 class ConfessServer():
     def __init__(self):
         #! Initialize Firebase and Telegram credentials
@@ -32,8 +31,6 @@ class ConfessServer():
     #! ---------------------------------------------
     #! POST ALGORITHMS
     #! ---------------------------------------------
-
-
 
     #! ──────────────────────────────────────────────
     #! 🧑‍💼 User Account Management
