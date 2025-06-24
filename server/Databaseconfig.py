@@ -79,16 +79,30 @@ class ConfessServer():
             return False
 
     def deleteExistingUser(self, email: str) -> bool:
-        #! Delete a user from Firestore by email.
         try:
             users = self.db.collection("Confession-UserData").where("email", "==", email).limit(1).stream()
             userErased = False
             for user in users:
                 self.db.collection("Confession-UserData").document(user.id).delete()
                 userErased = True
-            return userErased
+
+            if userErased:
+                emailManager = EmailManager(log_func=self.send_telegram_log)
+                emailSent = emailManager.send(
+                    to=email,
+                    subject="Your Confess Account Has Been Deleted",
+                    template_name="delete.html",  # Ensure this file exists in /templates
+                    context={
+                        "name": email.split('@')[0].capitalize()
+                    }
+                )
+                if not emailSent:
+                    self.send_telegram_log(f"⚠️ User deleted but failed to send deletion email to {email}")
+                return True
+            return False
+
         except Exception as e:
-            self.send_telegram_log(f"Caught an error while deleting user:\n{e}")
+            self.send_telegram_log(f"❌ Error deleting user {email}:\n{e}")
             return False
 
     def updateUserPassword(self, email: str, new_password: str):
