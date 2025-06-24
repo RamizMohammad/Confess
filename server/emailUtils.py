@@ -7,8 +7,8 @@ from .Databaseconfig import ConfessServer
 
 env = Environment(loader=FileSystemLoader('templates'))
 
-EMAIL = os.getenv("SMTP_EMAIL")
-PASSWORD = os.getenv("APP_PASSWORD")
+EMAIL = os.environ("SMTP_EMAIL")
+PASSWORD = os.environ("APP_PASSWORD")
 
 def sendEmailTemplate(to, subject, templateName, context):
     template = env.get_template(templateName)
