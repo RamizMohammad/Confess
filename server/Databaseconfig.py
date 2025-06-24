@@ -38,33 +38,33 @@ class ConfessServer():
     #! 🧑‍💼 User Account Management
     #! ──────────────────────────────────────────────
 
-def createUser(self, data: dict):
-    try:
-        self.db.collection("Confession-UserData").add(data)
-        self.send_telegram_log(f"🎉 New user joined:\n{data}")
-        name = data.get("name", "User")
-        email = data.get("email")
-        joined = data.get("date")
+    def createUser(self, data: dict):
+        try:
+            self.db.collection("Confession-UserData").add(data)
+            self.send_telegram_log(f"🎉 New user joined:\n{data}")
+            name = data.get("name", "User")
+            email = data.get("email")
+            joined = data.get("date")
 
-        if email:
-            success = self.emailServer.send(
-                to=email,
-                subject="Welcome to Our Platform",
-                templateName="welcome.html",
-                context={
-                    "name": name,
-                    "email": email,
-                    "date": joined
-                }
-            )
-            if success:
-                self.send_telegram_log(f"✅ Welcome email sent to {email}")
-            else:
-                self.send_telegram_log(f"❌ Failed to send welcome email to {email}")
-        return True
-    except Exception as e:
-        self.send_telegram_log(f"❌ CreateUser Error:\n{e}")
-        return False
+            if email:
+                success = self.emailServer.send(
+                    to=email,
+                    subject="Welcome to Our Platform",
+                    templateName="welcome.html",
+                    context={
+                        "name": name,
+                        "email": email,
+                        "date": joined
+                    }
+                )
+                if success:
+                    self.send_telegram_log(f"✅ Welcome email sent to {email}")
+                else:
+                    self.send_telegram_log(f"❌ Failed to send welcome email to {email}")
+            return True
+        except Exception as e:
+            self.send_telegram_log(f"❌ CreateUser Error:\n{e}")
+            return False
 
     def checkUser(self, email: str) -> bool:
         #! Check if a user exists in Firestore by email.
