@@ -6,27 +6,34 @@ import os
 from .Databaseconfig import ConfessServer
 
 env = Environment(loader=FileSystemLoader('templates'))
-server = ConfessServer()
+confess_server = ConfessServer()
 
 EMAIL = os.environ["SMTP_EMAIL"]
 PASSWORD = os.environ["APP_PASSWORD"]
 
 def sendEmailTemplate(to, subject, templateName, context):
-    template = env.get_template(templateName)
-    html = template.render(context)
-
-    msg = MIMEMultipart('alternative')
-    msg['Subject'] = subject
-    msg['From'] = EMAIL
-    msg['To'] = to
-    msg.attach(MIMEText(html, 'html'))
-
     try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(EMAIL, PASSWORD)
-            server.sendmail(EMAIL, to, msg.as_string())
-            return true
-        server.send_telegram_log(message=f"Mail has been sent")
+        # Render email template
+        template = env.get_template(templateName)
+        html = template.render(context)
+
+        # Build email message
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = EMAIL
+        msg['To'] = to
+        msg.attach(MIMEText(html, 'html'))
+
+        # Send email
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(EMAIL, PASSWORD)
+            smtp.sendmail(EMAIL, to, msg.as_string())
+
+        # Log success
+        confess_server.send_telegram_log(message=f"✅ Mail has been sent to {to}")
+        return True
+
     except Exception as e:
-        server.send_telegram_log(message=f"Error in sending email\n{e}")
-        return false
+        # Log error
+        confess_server.send_telegram_log(message=f"❌ Error in sending email to {to}\n{e}")
+        return False
