@@ -13,7 +13,7 @@ class EmailManager:
 
     def send(self, to, subject, templateName, context):
         try:
-            template = self.env.get_template(template_name)
+            template = self.env.get_template(templateName)
             html = template.render(context)
 
             msg = MIMEMultipart('alternative')
