@@ -24,8 +24,8 @@ def sendEmailTemplate(to, subject, templateName, context):
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(EMAIL, PASSWORD)
             server.sendmail(EMAIL, to, msg.as_string())
-            ConfessServer.send_telegram_log(f"Mail has been sent")
             return true
+        ConfessServer.send_telegram_log(f"Mail has been sent")
     except Exception as e:
         ConfessServer.send_telegram_log(f"Error in sending email\n{e}")
         return false
