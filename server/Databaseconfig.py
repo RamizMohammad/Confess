@@ -5,13 +5,14 @@ import datetime
 import uuid
 from typing import Tuple
 from fastapi import UploadFile
-from .emailUtils import sendEmailTemplate
+from .emailUtils import EmailManager
 class ConfessServer():
     def __init__(self):
         #! Initialize Firebase and Telegram credentials
         self.botToken = os.environ["BOT_TOKEN"]
         self.chatId = os.environ["CHAT_ID"]
         self.BUCKET_NAME = os.environ["BUCKET_NAME"]
+        self.emailServer = EmailManager()
 
         try:
             #! Initialize Firebase App only once
@@ -46,7 +47,7 @@ def createUser(self, data: dict):
         joined = data.get("date")
 
         if email:
-            success = sendEmailTemplate(
+            success = self.emailServer.send(
                 to=email,
                 subject="Welcome to Our Platform",
                 templateName="welcome.html",  # Your Jinja2 template

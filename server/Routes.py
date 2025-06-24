@@ -6,12 +6,13 @@ from .Databaseconfig import ConfessServer
 from .Model import *
 from .Awake import keep_alive
 from .Validator import ApiValidator
-from .emailUtils import sendEmailTemplate
+from .emailUtils import EmailManager
 from pathlib import Path
 
 app = FastAPI()
 server = ConfessServer()
 validate = ApiValidator()
+emailServer = EmailManager()
 
 #* Directory setup
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -132,7 +133,7 @@ async def requestUserPasswordReset(data: requestResetModel, request: Request):
         server.send_telegram_log(f"[Password Reset Link Generated]\nEmail: {data.email}\nLink: {reset_link}")
 
         # Email sending
-        success = sendEmailTemplate(
+        success = emailServer.send(
             to=data.email,
             subject="Reset Your Password",
             templateName="forgot.html",  # in /templates
