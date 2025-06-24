@@ -133,7 +133,7 @@ async def requestUserPasswordReset(data: requestResetModel, request: Request):
         server.send_telegram_log(f"[Password Reset Link Generated]\nEmail: {data.email}\nLink: {reset_link}")
 
         # Email sending
-        success = EmailManager.send(
+        success = emailServer.send(
             to=data.email,
             subject="Reset Your Password",
             templateName="forgot.html",  # in /templates

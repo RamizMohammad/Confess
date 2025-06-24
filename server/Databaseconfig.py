@@ -13,6 +13,7 @@ class ConfessServer():
         self.botToken = os.environ["BOT_TOKEN"]
         self.chatId = os.environ["CHAT_ID"]
         self.BUCKET_NAME = os.environ["BUCKET_NAME"]
+        self.emailServer = EmailManager()
 
         try:
             #! Initialize Firebase App only once
@@ -47,7 +48,7 @@ class ConfessServer():
             joined = data.get("date")
 
             if email:
-                success = EmailManager.send(
+                success = self.emailServer.send(
                     to=email,
                     subject="Welcome to Our Platform",
                     templateName="welcome.html",
