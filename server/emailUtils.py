@@ -11,7 +11,7 @@ class EmailManager:
         self.password = os.environ["APP_PASSWORD"]
         self.log_func = log_func or (lambda msg: print(msg))  # fallback log
 
-    def send(self, to, subject, template_name, context):
+    def send(self, to, subject, templateName, context):
         try:
             template = self.env.get_template(template_name)
             html = template.render(context)
