@@ -6,6 +6,7 @@ import os
 from .Databaseconfig import ConfessServer
 
 env = Environment(loader=FileSystemLoader('templates'))
+server = ConfessServer()
 
 EMAIL = os.environ["SMTP_EMAIL"]
 PASSWORD = os.environ["APP_PASSWORD"]
@@ -25,7 +26,7 @@ def sendEmailTemplate(to, subject, templateName, context):
             server.login(EMAIL, PASSWORD)
             server.sendmail(EMAIL, to, msg.as_string())
             return true
-        ConfessServer.send_telegram_log(message=f"Mail has been sent")
+        server.send_telegram_log(message=f"Mail has been sent")
     except Exception as e:
-        ConfessServer.send_telegram_log(message=f"Error in sending email\n{e}")
+        server.send_telegram_log(message=f"Error in sending email\n{e}")
         return false
