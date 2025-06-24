@@ -91,7 +91,7 @@ class ConfessServer():
                 emailSent = emailManager.send(
                     to=email,
                     subject="Your Confess Account Has Been Deleted",
-                    template_name="delete.html",  # Ensure this file exists in /templates
+                    templateName="delete.html",  # Ensure this file exists in /templates
                     context={
                         "name": email.split('@')[0].capitalize()
                     }
