@@ -5,6 +5,7 @@ import datetime
 import uuid
 from typing import Tuple
 from fastapi import UploadFile
+from .emailUtils import sendEmailTemplate
 class ConfessServer():
     def __init__(self):
         #! Initialize Firebase and Telegram credentials
@@ -36,15 +37,33 @@ class ConfessServer():
     #! 🧑‍💼 User Account Management
     #! ──────────────────────────────────────────────
 
-    def createUser(self, data: dict):
-        #! Add a new user to Firestore.
-        try:
-            self.db.collection("Confession-UserData").add(data)
-            self.send_telegram_log(f"We found a new user:\n{data}")
-            return True
-        except Exception as e:
-            self.send_telegram_log(f"CreateUser Error:\n{e}")
-            return False
+def createUser(self, data: dict):
+    try:
+        self.db.collection("Confession-UserData").add(data)
+        self.send_telegram_log(f"🎉 New user joined:\n{data}")
+        name = data.get("name", "User")
+        email = data.get("email")
+        joined = data.get("date")
+
+        if email:
+            success = sendEmailTemplate(
+                to=email,
+                subject="Welcome to Our Platform",
+                templateName="welcome.html",  # Your Jinja2 template
+                context={
+                    "name": name,
+                    "email": email,
+                    "date": joined
+                }
+            )
+            if success:
+                self.send_telegram_log(f"✅ Welcome email sent to {email}")
+            else:
+                self.send_telegram_log(f"❌ Failed to send welcome email to {email}")
+        return True
+    except Exception as e:
+        self.send_telegram_log(f"❌ CreateUser Error:\n{e}")
+        return False
 
     def checkUser(self, email: str) -> bool:
         #! Check if a user exists in Firestore by email.
