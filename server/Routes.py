@@ -6,6 +6,7 @@ from .Databaseconfig import ConfessServer
 from .Model import *
 from .Awake import keep_alive
 from .Validator import ApiValidator
+from .emailUtils import sendEmailTemplate
 from pathlib import Path
 
 app = FastAPI()
@@ -120,19 +121,33 @@ def checkPassword(data: checkPassword, request: Request):
 @app.post('/forgot-password')
 async def requestUserPasswordReset(data: requestResetModel, request: Request):
     if not validate.validate(request.headers.get("x-api-key")):
-        return {
-            "message": False
-        }
+        return { "message": False }
+
     if not server.checkUser(data.email):
         return JSONResponse(status_code=404, content={"success": False})
 
     token = server.passwordReset(data.email)
     if token:
-        link = f"https://confess-ysj8.onrender.com/reset-password/{token}"
-        server.send_telegram_log(f"[Password Reset Link Generated]\nEmail: {data.email}\nLink: {link}")
-        return {"message": True}
+        reset_link = f"https://confess-ysj8.onrender.com/reset-password/{token}"
+        server.send_telegram_log(f"[Password Reset Link Generated]\nEmail: {data.email}\nLink: {reset_link}")
 
-    return {"message": False}
+        # Email sending
+        success = sendEmailTemplate(
+            to=data.email,
+            subject="Reset Your Password",
+            templateName="forgot.html",  # in /templates
+            context={
+                "name": data.email.split('@')[0].capitalize(),
+                "reset_link": reset_link
+            }
+        )
+
+        if success:
+            return {"message": True}
+        else:
+            return {"message": False, "error": "Email failed to send"}
+
+    return {"message": False, "error": "Token generation failed"}
 
 #! ----------- SYSTEM STATUS + KEEP ALIVE -----------
 
