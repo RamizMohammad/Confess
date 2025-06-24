@@ -50,7 +50,7 @@ def createUser(self, data: dict):
             success = self.emailServer.send(
                 to=email,
                 subject="Welcome to Our Platform",
-                templateName="welcome.html",  # Your Jinja2 template
+                templateName="welcome.html",
                 context={
                     "name": name,
                     "email": email,
