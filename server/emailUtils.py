@@ -19,7 +19,7 @@ class EmailManager:
 
             msg = MIMEMultipart('alternative')
             msg['Subject'] = subject
-            msg['From'] = self.email
+            msg['From'] = formataddr(("TEAM CONFESS", self.email))
             msg['To'] = to
             msg.attach(MIMEText(html, 'html'))
 
