@@ -9,14 +9,14 @@ from .emailUtils import EmailManager
 
 class ConfessServer():
     def __init__(self):
-        #! Initialize Firebase and Telegram credentials
+        #* Initialize Firebase and Telegram credentials
         self.botToken = os.environ["BOT_TOKEN"]
         self.chatId = os.environ["CHAT_ID"]
         self.BUCKET_NAME = os.environ["BUCKET_NAME"]
         self.emailServer = EmailManager()
 
         try:
-            #! Initialize Firebase App only once
+            #* Initialize Firebase App only once
             if not firebase_admin._apps:
                 cred_json = json.loads(os.environ["FIREBASE_CREDENTIALS"])
                 cred = credentials.Certificate(cred_json)
@@ -35,6 +35,7 @@ class ConfessServer():
     #! POST ALGORITHMS
     #! ---------------------------------------------
 
+    #* Algorithm to add a new post
     def addPost(self, data: dict) -> bool:
         try:
             self.db.collection("Confession-Posts").add(data)
@@ -47,6 +48,7 @@ class ConfessServer():
     #! 🧑‍💼 User Account Management
     #! ──────────────────────────────────────────────
 
+    #* Algorithm to create a new user
     def createUser(self, data: dict) -> bool:
         try:
             self.db.collection("Confession-UserData").add(data)
@@ -75,6 +77,7 @@ class ConfessServer():
             self.send_telegram_log(f"❌ CreateUser Error:\n{e}")
             return False
 
+    #* Algorithm to check the available user
     def checkUser(self, email: str) -> bool:
         #! Check if a user exists in Firestore by email.
         try:
@@ -86,6 +89,7 @@ class ConfessServer():
             self.send_telegram_log(f"CheckUser Error:\n{e}")
             return False
 
+    #* Algorithm to delete the user
     def deleteExistingUser(self, email: str) -> bool:
         try:
             users = self.db.collection("Confession-UserData").where("email", "==", email).limit(1).stream()
@@ -113,6 +117,7 @@ class ConfessServer():
             self.send_telegram_log(f"❌ Error deleting user {email}:\n{e}")
             return False
 
+    #* Algoritm to update the password
     def updateUserPassword(self, email: str, new_password: str):
         #! Update a user's password.
         try:

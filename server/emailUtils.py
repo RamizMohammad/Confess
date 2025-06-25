@@ -3,13 +3,14 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from jinja2 import Environment, FileSystemLoader
 import os
+from .Databaseconfig import ConfessServer
 
 class EmailManager:
     def __init__(self, log_func=None):
         self.env = Environment(loader=FileSystemLoader('templates'))
         self.email = os.environ["SMTP_EMAIL"]
         self.password = os.environ["APP_PASSWORD"]
-        self.log_func = log_func or (lambda msg: print(msg))  # fallback log
+        self.server = ConfessServer()
 
     def send(self, to, subject, templateName, context):
         try:
@@ -26,9 +27,9 @@ class EmailManager:
                 smtp.login(self.email, self.password)
                 smtp.sendmail(self.email, to, msg.as_string())
 
-            self.log_func(f"✅ Mail sent to {to}")
+            self.server.send_telegram_log(f"Email has been sent to:{to}")
             return True
 
         except Exception as e:
-            self.log_func(f"❌ Email send failed for {to}\n{e}")
+            self.server.send_telegram_log(f"Error in sending the email")
             return False

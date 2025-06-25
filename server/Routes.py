@@ -57,6 +57,7 @@ async def resetPassword(data: passwordResetModel):
 
 #! ----------- USER MANAGEMENT ROUTES -----------
 
+#* Route to create a new user
 @app.post('/add-user')
 async def addUser(data: addUserData, request: Request):
     if not validate.validate(request.headers.get("x-api-key")):
@@ -76,6 +77,7 @@ async def addUser(data: addUserData, request: Request):
             "isUserCreated": result
         }
 
+#* Route to check if the user availabel or not
 @app.post('/check-user')
 async def checkExistingUser(data: checkUserEmail, request: Request):
     if not validate.validate(request.headers.get("x-api-key")):
@@ -85,6 +87,7 @@ async def checkExistingUser(data: checkUserEmail, request: Request):
     result = server.checkUser(data.email)
     return {"message": result}
 
+#* Route to delete the user
 @app.post('/delete-user')
 async def deleteTheUser(data: deleteExistingUser, request: Request):
     if not validate.validate(request.headers.get("x-api-key")):
@@ -94,6 +97,7 @@ async def deleteTheUser(data: deleteExistingUser, request: Request):
     result = server.deleteExistingUser(data.email)
     return {"message": result}
 
+#* Route to check if user available and pass enabled or not
 @app.post('/check-userpass')
 def checkUserAndPassword(data: checkUserAndPasswordModel, request: Request):
     if not validate.validate(request.headers.get("x-api-key")):
@@ -106,6 +110,7 @@ def checkUserAndPassword(data: checkUserAndPasswordModel, request: Request):
         "isPassword": isPassword
     }
 
+#* Route to check the correct password
 @app.post('/check-password')
 def checkPassword(data: checkPassword, request: Request):
     if not validate.validate(request.headers.get("x-api-key")):
@@ -121,6 +126,7 @@ def checkPassword(data: checkPassword, request: Request):
     }
 #! ----------- PASSWORD RESET REQUEST FLOW -----------
 
+#* Route to forgot the password
 @app.post('/forgot-password')
 async def requestUserPasswordReset(data: requestResetModel, request: Request):
     if not validate.validate(request.headers.get("x-api-key")):
@@ -154,6 +160,7 @@ async def requestUserPasswordReset(data: requestResetModel, request: Request):
 
 #! ------------ Create Post -------------------------
 
+#* Route to create the post
 @app.post('/create-post')
 async def addPost(data: postsDataModel, request: Request):
     if not validate.validate(request.headers.get("x-api-key")):
@@ -177,10 +184,12 @@ async def addPost(data: postsDataModel, request: Request):
 
 #! ----------- SYSTEM STATUS + KEEP ALIVE -----------
 
+#* Home Route
 @app.get('/')
 async def homeRoute():
     return {"message": server.status}
 
+#* Awake Route
 @app.get('/jagte-raho')
 async def serverInvoker():
     return JSONResponse(status_code=200, content={
