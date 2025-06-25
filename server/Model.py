@@ -40,9 +40,7 @@ class checkPassword(BaseModel):
     password: str
 
 class postsDataModel(BaseModel):
-    postId: str
     email: str
-    dateOfPost: str
     post: str
 
 class postStatusModel(BaseModel):

@@ -8,6 +8,8 @@ from .Awake import keep_alive
 from .Validator import ApiValidator
 from .emailUtils import EmailManager
 from pathlib import Path
+from uuid import uuid4
+import datetime
 
 app = FastAPI()
 server = ConfessServer()
@@ -149,6 +151,29 @@ async def requestUserPasswordReset(data: requestResetModel, request: Request):
             return {"message": False, "error": "Email failed to send"}
 
     return {"message": False, "error": "Token generation failed"}
+
+#! ------------ Create Post -------------------------
+
+@app.post('/create-post')
+async def addPost(data: postsDataModel, request: Request):
+    if not validate.validate(request.headers.get("x-api-key")):
+        return {
+            "message": False
+        }
+    postData = {
+        "postId": str(uuid4()),
+        "email": data.email,
+        "date": datetime.utcnow().isoformat(),
+        "post": data.post
+    }
+    if server.addPost(postData):
+        return{
+            "message": True
+        }
+    else:
+        return{
+            "message": False
+        }
 
 #! ----------- SYSTEM STATUS + KEEP ALIVE -----------
 

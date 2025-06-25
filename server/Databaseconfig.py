@@ -35,11 +35,19 @@ class ConfessServer():
     #! POST ALGORITHMS
     #! ---------------------------------------------
 
+    def addPost(self, data: dict) -> bool:
+        try:
+            self.db.collection("Confession-Posts").add(data)
+            return True
+        except Exception as e:
+            self.send_telegram_log(f"Error in post saving\n{e}")
+            return False
+
     #! ──────────────────────────────────────────────
     #! 🧑‍💼 User Account Management
     #! ──────────────────────────────────────────────
 
-    def createUser(self, data: dict):
+    def createUser(self, data: dict) -> bool:
         try:
             self.db.collection("Confession-UserData").add(data)
             self.send_telegram_log(f"🎉 New user joined:\n{data}")
