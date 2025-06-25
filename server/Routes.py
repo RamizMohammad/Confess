@@ -163,7 +163,7 @@ async def addPost(data: postsDataModel, request: Request):
     postData = {
         "postId": str(uuid4()),
         "email": data.email,
-        "date": datetime.utcnow().isoformat(),
+        "date": datetime.datetime.utcnow().isoformat(),
         "post": data.post
     }
     if server.addPost(postData):
