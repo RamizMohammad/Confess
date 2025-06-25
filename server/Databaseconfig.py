@@ -103,7 +103,7 @@ class ConfessServer():
                 emailSent = emailManager.send(
                     to=email,
                     subject="Your Confess Account Has Been Deleted",
-                    templateName="delete.html",  # Ensure this file exists in /templates
+                    templateName="delete.html",
                     context={
                         "name": email.split('@')[0].capitalize()
                     }
@@ -140,6 +140,7 @@ class ConfessServer():
             return False
         except Exception as e:
             self.send_telegram_log(f"We got an error:\n{e}")
+
     #! ──────────────────────────────────────────────
     #!🔐 Password Reset Workflow
     #! ──────────────────────────────────────────────
