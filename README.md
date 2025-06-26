@@ -27,10 +27,6 @@
 
 ---
 
-## 🌐 Live Demo
-
-> 🟢 [https://confess-ysj8.onrender.com](https://confess-ysj8.onrender.com)
-
 ---
 
 ## 🔧 Environment Variables
