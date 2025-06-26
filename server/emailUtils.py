@@ -9,6 +9,7 @@ class EmailManager:
         self.env = Environment(loader=FileSystemLoader('templates'))
         self.email = os.environ["SMTP_EMAIL"]
         self.password = os.environ["APP_PASSWORD"]
+        self.log = log_func or (lambda msg: print("[EmailLog]", msg))
 
     def send(self, to, subject, templateName, context):
         try:
@@ -24,7 +25,9 @@ class EmailManager:
             with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
                 smtp.login(self.email, self.password)
                 smtp.sendmail(self.email, to, msg.as_string())
+            self.log(f"✅ Email sent to {to}")
             return True
 
         except Exception as e:
+            self.log(f"❌ Email send failed to {to}: {e}")
             return False
